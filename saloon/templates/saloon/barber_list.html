@@ -1,0 +1,60 @@
+{% extends "saloon/base_salon.html" %}
+
+{% block salon_title %}Barbers - {{ salon.name }}{% endblock %}
+
+{% block salon_content %}
+<div class="bg-white shadow-sm rounded-lg p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold text-[#1E283D]">Barbers</h2>
+        <a href="{% url 'salon:barber_create' salon.pk %}" class="bg-[#4B49AC] hover:bg-[#7DA0FA] text-white font-bold py-2 px-4 rounded">Add New Barber</a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full leading-normal">
+            <thead>
+                <tr>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Phone</th>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for barber in barbers %}
+                <tr>
+                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                        <div class="flex items-center">
+                            <div class="ml-3">
+                                <p class="text-gray-900 whitespace-no-wrap">{{ barber.user.get_full_name }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                        <p class="text-gray-900 whitespace-no-wrap">{{ barber.barber_type.name }}</p>
+                    </td>
+                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                        <p class="text-gray-900 whitespace-no-wrap">{{ barber.phone }}</p>
+                    </td>
+                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                        <span class="relative inline-block px-3 py-1 font-semibold {% if barber.is_active %}text-green-900{% else %}text-red-900{% endif %} leading-tight">
+                            <span aria-hidden class="absolute inset-0 {% if barber.is_active %}bg-green-200{% else %}bg-red-200{% endif %} opacity-50 rounded-full"></span>
+                            <span class="relative">{% if barber.is_active %}Active{% else %}Inactive{% endif %}</span>
+                        </span>
+                    </td>
+                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                        <a href="{% url 'salon:barber_update' salon.pk barber.pk %}" class="text-[#4B49AC] hover:text-[#7DA0FA] mr-3">Edit</a>
+                        <a href="{% url 'salon:barber_delete' salon.pk barber.pk %}" class="text-red-600 hover:text-red-800" onclick="return confirm('Are you sure you want to delete this barber?');">Delete</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center">No barbers found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% include "saloon/partials/pagination.html" %}
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "saloon/base_salon.html" %}
+
+{% block salon_title %}Confirm Delete Cash Register{% endblock %}
+
+{% block salon_content %}
+<div class="bg-white shadow-sm rounded-lg p-6">
+    <h2 class="text-xl font-semibold text-[#1E283D] mb-6">Confirm Delete Cash Register</h2>
+    <p class="mb-6">Are you sure you want to delete the cash register "{{ object }}"?</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="flex items-center justify-between">
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Confirm Delete
+            </button>
+            <a href="{% url 'saloonfinance:cashregister_list' object.salon.id %}" class="inline-block align-baseline font-bold text-sm text-[#4B49AC] hover:text-[#7DA0FA]">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

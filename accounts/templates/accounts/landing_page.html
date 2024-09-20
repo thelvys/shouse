@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-semibold text-[#1E283D] mb-2">Welcome {{ user.get_full_name|default:user.email }}</h1>
+    <p class="text-gray-500">All systems are running smoothly! You have 3 unread alerts!</p>
+</div>
+
+{% if user.is_authenticated %}
+    {% if user.owned_salons.exists %}
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <div class="bg-[#98BDFF] p-4 rounded-lg shadow-sm">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-lg font-semibold text-white mb-2">Chicago</h3>
+                        <p class="text-3xl font-bold text-white">31°</p>
+                    </div>
+                    <div class="text-white text-4xl">☀️</div>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-sm">
+                <h3 class="text-sm font-semibold text-gray-500 mb-2">Today's Bookings</h3>
+                <p class="text-2xl font-bold text-[#1E283D]">4006</p>
+                <p class="text-sm text-green-500">+3.45% (15 days)</p>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-sm">
+                <h3 class="text-sm font-semibold text-gray-500 mb-2">Total Bookings</h3>
+                <p class="text-2xl font-bold text-[#1E283D]">61344</p>
+                <p class="text-sm text-green-500">+2.00% (30 days)</p>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-sm">
+                <h3 class="text-sm font-semibold text-gray-500 mb-2">Number of Meetings</h3>
+                <p class="text-2xl font-bold text-[#1E283D]">34040</p>
+                <p class="text-sm text-red-500">-2.00% (30 days)</p>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <h3 class="text-lg font-semibold text-[#1E283D] mb-4">Order Details</h3>
+                <!-- Placeholder for order details chart -->
+                <div class="h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <p class="text-gray-500">Order details chart will be displayed here</p>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <h3 class="text-lg font-semibold text-[#1E283D] mb-4">Sales Report</h3>
+                <!-- Placeholder for sales report chart -->
+                <div class="h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <p class="text-gray-500">Sales report chart will be displayed here</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
+            <h3 class="text-lg font-semibold text-[#1E283D] mb-4">Financial Overview</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <a href="{% url 'saloonfinance:currency_list' %}" class="block p-4 bg-[#4B49AC] text-white rounded-lg hover:bg-[#7DA0FA]">
+                    <h4 class="font-semibold mb-2">Currencies</h4>
+                    <p>Manage your currencies</p>
+                </a>
+                {% if user.owned_salons.exists %}
+                    <a href="{% url 'saloonfinance:cashregister_list' user.owned_salons.first.id %}" class="block p-4 bg-[#7DA0FA] text-white rounded-lg hover:bg-[#4B49AC]">
+                        <h4 class="font-semibold mb-2">Cash Registers</h4>
+                        <p>View and manage cash registers</p>
+                    </a>
+                    <a href="{% url 'saloonfinance:payment_list' user.owned_salons.first.id %}" class="block p-4 bg-[#7978E9] text-white rounded-lg hover:bg-[#4B49AC]">
+                        <h4 class="font-semibold mb-2">Payments</h4>
+                        <p>Track and manage payments</p>
+                    </a>
+                    <a href="{% url 'saloonfinance:transaction_list' user.owned_salons.first.id %}" class="block p-4 bg-[#F3797E] text-white rounded-lg hover:bg-[#4B49AC]">
+                        <h4 class="font-semibold mb-2">Transactions</h4>
+                        <p>View all transactions</p>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <p class="text-gray-500">You do not own any salons yet. <a href="{% url 'salon:salon_create' %}" class="text-[#4B49AC] hover:text-[#7DA0FA]">Create a new salon</a>.</p>
+    {% endif %}
+{% else %}
+    <p class="text-[#1E283D]">Welcome to our salon management system! Please log in or sign up to access your personalized dashboard.</p>
+    <div class="mt-4">
+        <a href="{% url 'accounts:login' %}" class="bg-[#4B49AC] hover:bg-[#7DA0FA] text-white font-bold py-2 px-4 rounded">Login</a>
+        <a href="{% url 'accounts:signup' %}" class="bg-[#98BDFF] hover:bg-[#7DA0FA] text-white font-bold py-2 px-4 rounded ml-2">Sign Up</a>
+    </div>
+{% endif %}
+{% endblock %}

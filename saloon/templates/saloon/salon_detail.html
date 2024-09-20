@@ -1,0 +1,28 @@
+{% extends "saloon/base_salon.html" %}
+
+{% block salon_title %}{{ salon.name }}{% endblock %}
+
+{% block salon_content %}
+<div class="bg-white shadow-sm rounded-lg p-6">
+    <h2 class="text-2xl font-semibold text-[#1E283D] mb-4">{{ salon.name }}</h2>
+    <p class="text-gray-600 mb-6">{{ salon.description }}</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <h3 class="text-lg font-semibold text-[#4B49AC] mb-2">Contact Information</h3>
+            <p class="mb-1"><strong>Address:</strong> {{ salon.address }}</p>
+            <p class="mb-1"><strong>Phone:</strong> {{ salon.phone }}</p>
+            <p><strong>Email:</strong> {{ salon.email }}</p>
+        </div>
+        <div>
+            <h3 class="text-lg font-semibold text-[#4B49AC] mb-2">Salon Details</h3>
+            <p class="mb-1"><strong>Owner:</strong> {{ salon.owner.get_full_name }}</p>
+            <p><strong>Status:</strong> {% if salon.is_active %}Active{% else %}Inactive{% endif %}</p>
+        </div>
+    </div>
+    <div class="mt-8">
+        <a href="{% url 'salon:salon_update' salon.pk %}" class="bg-[#4B49AC] hover:bg-[#7DA0FA] text-white font-bold py-2 px-4 rounded mr-2">Edit Salon</a>
+        <a href="{% url 'salon:barber_list' salon.pk %}" class="bg-[#98BDFF] hover:bg-[#7DA0FA] text-white font-bold py-2 px-4 rounded mr-2">Manage Barbers</a>
+        <a href="{% url 'salon:client_list' salon.pk %}" class="bg-[#98BDFF] hover:bg-[#7DA0FA] text-white font-bold py-2 px-4 rounded">Manage Clients</a>
+    </div>
+</div>
+{% endblock %}

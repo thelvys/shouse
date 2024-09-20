@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Salon Management{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-100 flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white shadow-md">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold text-[#4B49AC] mb-10">Skydash</h1>
+            <nav>
+                <a href="{% url 'accounts:home' %}" class="block py-2 px-4 rounded {% if request.resolver_match.url_name == 'home' %}bg-[#4B49AC] text-white{% else %}text-[#1E283D] hover:bg-gray-100{% endif %} mb-2">Dashboard</a>
+                
+                <!-- Salon Links -->
+                {% if user.is_authenticated %}
+                    <div class="mb-2">
+                        <p class="text-sm text-gray-500 mb-1">Salon</p>
+                        <a href="{% url 'salon:salon_list' %}" class="block py-2 px-4 rounded text-[#1E283D] hover:bg-gray-100 ml-2">Salons</a>
+                        {% if user.owned_salons.exists %}
+                            <a href="{% url 'salon:barber_type_list' user.owned_salons.first.id %}" class="block py-2 px-4 rounded text-[#1E283D] hover:bg-gray-100 ml-2">Barber Types</a>
+                            <a href="{% url 'salon:barber_list' user.owned_salons.first.id %}" class="block py-2 px-4 rounded text-[#1E283D] hover:bg-gray-100 ml-2">Barbers</a>
+                            <a href="{% url 'salon:client_list' user.owned_salons.first.id %}" class="block py-2 px-4 rounded text-[#1E283D] hover:bg-gray-100 ml-2">Clients</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                <!-- Finance Links -->
+                {% if user.is_authenticated and user.owned_salons.exists %}
+                    <div class="mb-2">
+                        <p class="text-sm text-gray-500 mb-1">Finance</p>
+                        <a href="{% url 'saloonfinance:cashregister_list' user.owned_salons.first.id %}" class="block py-2 px-4 rounded text-[#1E283D] hover:bg-gray-100 ml-2">Cash Registers</a>
+                        <a href="{% url 'saloonfinance:payment_list' user.owned_salons.first.id %}" class="block py-2 px-4 rounded text-[#1E283D] hover:bg-gray-100 ml-2">Payments</a>
+                        <a href="{% url 'saloonfinance:transaction_list' user.owned_salons.first.id %}" class="block py-2 px-4 rounded text-[#1E283D] hover:bg-gray-100 ml-2">Transactions</a>
+                    </div>
+                {% endif %}
+            </nav>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Header -->
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+            <div class="flex items-center">
+                <input type="text" placeholder="Search..." class="px-4 py-2 border rounded-md text-[#1E283D]" style="border-color: #E5E5E5;">
+            </div>
+            <div class="flex items-center space-x-4">
+                {% if user.is_authenticated %}
+                    <span class="text-[#1E283D]">Welcome, {{ user.get_full_name|default:user.email }}</span>
+                    <a href="{% url 'accounts:logout' %}" class="text-[#1E283D] hover:text-[#4B49AC]">Logout</a>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="text-[#1E283D] hover:text-[#4B49AC]">Login</a>
+                    <a href="{% url 'accounts:signup' %}" class="text-[#1E283D] hover:text-[#4B49AC]">Sign Up</a>
+                {% endif %}
+            </div>
+        </header>
+
+        <!-- Main content area -->
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+            {% block content %}
+            {% endblock %}
+        </main>
+    </div>
+
+    {% block extra_body %}{% endblock %}
+</body>
+</html>
