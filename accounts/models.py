@@ -17,9 +17,9 @@ class TimestampedModel(models.Model):
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError(_('The Email must be set'))
+            raise ValueError(_('The Email must be set'))  # Utilisation de _ pour internationaliser
         if password is None:
-            raise ValueError(_('The Password must be set'))
+            raise ValueError(_('The Password must be set'))  # Utilisation de _ pour internationaliser
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
@@ -32,9 +32,9 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_active', True)
         
         if extra_fields.get('is_staff') is not True:
-            raise ValueError(_('Superuser must have is_staff=True.'))
+            raise ValueError(_('Superuser must have is_staff=True.'))  # Utilisation de _ pour internationaliser
         if extra_fields.get('is_superuser') is not True:
-            raise ValueError(_('Superuser must have is_superuser=True.'))
+            raise ValueError(_('Superuser must have is_superuser=True.'))  # Utilisation de _ pour internationaliser
         return self.create_user(email, password, **extra_fields)
 
 name_validator = RegexValidator(r'^[a-zA-Z]*$', 'Only alphabets characters are allowed.')
@@ -72,4 +72,4 @@ class CustomUser(AbstractUser, TimestampedModel):
     
     def email_user(self, subject, message, from_email=None, **kwargs):
         '''Sends an email to this User.'''
-        send_mail(subject, message, from_email, [self.email], **kwargs) 
+        send_mail(subject, message, from_email, [self.email], **kwargs)

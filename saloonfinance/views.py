@@ -2,11 +2,17 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, D
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import PermissionDenied
+from django.contrib.messages.views import SuccessMessageMixin
+from django.utils.translation import gettext_lazy as _
 from saloon.models import Salon
 from .models import Currency, CashRegister, PaymentType, Payment, Transaction
 from .forms import CurrencyForm, CashRegisterForm, PaymentTypeForm, PaymentForm, TransactionForm
 
 class SalonOwnerMixin(UserPassesTestMixin):
+    """
+    Mixin to check if the current user is the owner of the salon.
+    """
     def test_func(self):
         salon_id = self.kwargs.get('salon_id')
         return self.request.user.owned_salons.filter(id=salon_id).exists()
@@ -16,17 +22,19 @@ class CurrencyListView(LoginRequiredMixin, ListView):
     template_name = 'saloonfinance/currency_list.html'
     context_object_name = 'currencies'
 
-class CurrencyCreateView(LoginRequiredMixin, CreateView):
+class CurrencyCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Currency
     form_class = CurrencyForm
     template_name = 'saloonfinance/currency_form.html'
     success_url = reverse_lazy('saloonfinance:currency_list')
+    success_message = _("Currency successfully created.")
 
-class CurrencyUpdateView(LoginRequiredMixin, UpdateView):
+class CurrencyUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Currency
     form_class = CurrencyForm
     template_name = 'saloonfinance/currency_form.html'
     success_url = reverse_lazy('saloonfinance:currency_list')
+    success_message = _("Currency successfully updated.")
 
 class CurrencyDeleteView(LoginRequiredMixin, DeleteView):
     model = Currency
@@ -40,11 +48,11 @@ class CashRegisterListView(LoginRequiredMixin, SalonOwnerMixin, ListView):
 
     def get_queryset(self):
         salon = get_object_or_404(Salon, pk=self.kwargs['salon_id'])
-        return CashRegister.objects.filter(salon=salon)
+        return CashRegister.objects.filter(salon=salon).select_related('salon')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['salon'] = self.salon
+        context['salon'] = get_object_or_404(Salon, pk=self.kwargs['salon_id'])
         return context
 
 class CashRegisterCreateView(LoginRequiredMixin, SalonOwnerMixin, CreateView):
@@ -56,12 +64,14 @@ class CashRegisterCreateView(LoginRequiredMixin, SalonOwnerMixin, CreateView):
         return reverse_lazy('saloonfinance:cashregister_list', kwargs={'salon_id': self.kwargs['salon_id']})
 
     def form_valid(self, form):
+        if not self.request.user.has_perm('saloonfinance.add_cashregister'):
+            raise PermissionDenied(_("You do not have permission to add a cash register."))
         form.instance.salon = get_object_or_404(Salon, pk=self.kwargs['salon_id'])
         return super().form_valid(form)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['salon'] = self.salon
+        context['salon'] = get_object_or_404(Salon, pk=self.kwargs['salon_id'])
         return context
 
 class CashRegisterUpdateView(LoginRequiredMixin, SalonOwnerMixin, UpdateView):
@@ -71,6 +81,11 @@ class CashRegisterUpdateView(LoginRequiredMixin, SalonOwnerMixin, UpdateView):
 
     def get_success_url(self):
         return reverse_lazy('saloonfinance:cashregister_list', kwargs={'salon_id': self.object.salon.id})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['salon'] = self.object.salon
+        return context
 
 class CashRegisterDeleteView(LoginRequiredMixin, SalonOwnerMixin, DeleteView):
     model = CashRegister
@@ -84,17 +99,19 @@ class PaymentTypeListView(LoginRequiredMixin, ListView):
     template_name = 'saloonfinance/paymenttype_list.html'
     context_object_name = 'payment_types'
 
-class PaymentTypeCreateView(LoginRequiredMixin, CreateView):
+class PaymentTypeCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = PaymentType
     form_class = PaymentTypeForm
     template_name = 'saloonfinance/paymenttype_form.html'
     success_url = reverse_lazy('saloonfinance:paymenttype_list')
+    success_message = _("Payment type successfully created.")
 
-class PaymentTypeUpdateView(LoginRequiredMixin, UpdateView):
+class PaymentTypeUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = PaymentType
     form_class = PaymentTypeForm
     template_name = 'saloonfinance/paymenttype_form.html'
     success_url = reverse_lazy('saloonfinance:paymenttype_list')
+    success_message = _("Payment type successfully updated.")
 
 class PaymentTypeDeleteView(LoginRequiredMixin, DeleteView):
     model = PaymentType
@@ -108,7 +125,7 @@ class PaymentListView(LoginRequiredMixin, SalonOwnerMixin, ListView):
 
     def get_queryset(self):
         salon = get_object_or_404(Salon, pk=self.kwargs['salon_id'])
-        return Payment.objects.filter(salon=salon)
+        return Payment.objects.filter(salon=salon).select_related('salon', 'payment_type')
 
 class PaymentCreateView(LoginRequiredMixin, SalonOwnerMixin, CreateView):
     model = Payment
@@ -144,7 +161,7 @@ class TransactionListView(LoginRequiredMixin, SalonOwnerMixin, ListView):
 
     def get_queryset(self):
         salon = get_object_or_404(Salon, pk=self.kwargs['salon_id'])
-        return Transaction.objects.filter(salon=salon)
+        return Transaction.objects.filter(salon=salon).select_related('salon')
 
 class TransactionCreateView(LoginRequiredMixin, SalonOwnerMixin, CreateView):
     model = Transaction

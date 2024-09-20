@@ -1,7 +1,7 @@
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
@@ -60,18 +60,29 @@ class SalonDetailView(LoginRequiredMixin, SalonOwnerMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['barbers'] = self.object.barber_set.all()[:5]
-        context['clients'] = self.object.client_set.all()[:5]
+        context['barbers'] = self.object.barbers.all().select_related('user')[:5]
+        context['clients'] = self.object.clients.all().select_related('user')[:5]
         return context
 
 class SalonDeleteView(LoginRequiredMixin, SalonOwnerMixin, DeleteView):
+    """
+    Handles the deletion of a salon. Ensures that only the owner can delete the salon and provides error handling.
+    """
     model = Salon
     template_name = 'saloon/confirm_delete.html'
     success_url = reverse_lazy('accounts:home')
 
     def delete(self, request, *args, **kwargs):
-        messages.success(self.request, _("Salon deleted successfully."))
-        return super().delete(request, *args, **kwargs)
+        if not self.test_func():
+            messages.error(self.request, _("You do not have permission to delete this salon."))
+            return redirect('salon:salon_list')
+        try:
+            response = super().delete(request, *args, **kwargs)
+            messages.success(self.request, _("Salon deleted successfully."))
+            return response
+        except Exception as e:
+            messages.error(self.request, _("Failed to delete salon."))
+            return redirect('salon:salon_detail', pk=self.object.pk)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -84,9 +95,22 @@ class BarberListView(LoginRequiredMixin, HasSalonMixin, ListView):
     context_object_name = 'barbers'
     paginate_by = 10
 
+    def test_func(self):
+        salon = self.get_salon()
+        return self.request.user == salon.owner
+    
+    def get_salon(self):
+        salon_id = self.kwargs.get('salon_id')
+        return get_object_or_404(Salon, pk=salon_id)
+
     def get_queryset(self):
-        salon = get_object_or_404(Salon, owner=self.request.user)
-        return Barber.objects.filter(salon=salon).order_by('-created_at')
+        salon = self.get_salon()
+        return BarberType.objects.filter(salon=salon).order_by('-created_at')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['salon'] = self.get_salon()
+        return context
 
 class BarberCreateView(LoginRequiredMixin, HasSalonMixin, CreateView):
     model = Barber
@@ -143,9 +167,22 @@ class ClientListView(LoginRequiredMixin, HasSalonMixin, ListView):
     context_object_name = 'clients'
     paginate_by = 10
 
+    def test_func(self):
+        salon = self.get_salon()
+        return self.request.user == salon.owner
+    
+    def get_salon(self):
+        salon_id = self.kwargs.get('salon_id')
+        return get_object_or_404(Salon, pk=salon_id)
+
     def get_queryset(self):
-        salon = get_object_or_404(Salon, owner=self.request.user)
-        return Client.objects.filter(salon=salon).order_by('-created_at')
+        salon = self.get_salon()
+        return BarberType.objects.filter(salon=salon).order_by('-created_at')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['salon'] = self.get_salon()
+        return context
 
 class ClientCreateView(LoginRequiredMixin, HasSalonMixin, CreateView):
     model = Client
@@ -202,9 +239,22 @@ class BarberTypeListView(LoginRequiredMixin, HasSalonMixin, ListView):
     context_object_name = 'barber_types'
     paginate_by = 10
 
+    def test_func(self):
+        salon = self.get_salon()
+        return self.request.user == salon.owner
+    
+    def get_salon(self):
+        salon_id = self.kwargs.get('salon_id')
+        return get_object_or_404(Salon, pk=salon_id)
+
     def get_queryset(self):
-        salon = get_object_or_404(Salon, owner=self.request.user)
+        salon = self.get_salon()
         return BarberType.objects.filter(salon=salon).order_by('-created_at')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['salon'] = self.get_salon()
+        return context
 
 class BarberTypeCreateView(LoginRequiredMixin, HasSalonMixin, CreateView):
     model = BarberType
@@ -234,6 +284,15 @@ class BarberTypeUpdateView(LoginRequiredMixin, HasSalonMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, _("Barber Type updated successfully."))
         return super().form_valid(form)
+    
+    def test_func(self):
+        barber_type = self.get_object()
+        return self.request.user == barber_type.salon.owner
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['salon'] = self.object.salon
+        return context
 
 class BarberTypeDeleteView(LoginRequiredMixin, HasSalonMixin, DeleteView):
     model = BarberType

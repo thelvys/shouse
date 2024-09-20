@@ -6,7 +6,7 @@
 <div class="bg-white shadow-sm rounded-lg p-6">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-semibold text-[#1E283D]">Barber Types</h2>
-        <a href="{% url 'salon:barber_type_create' salon.pk %}" class="bg-[#4B49AC] hover:bg-[#7DA0FA] text-white font-bold py-2 px-4 rounded">Add New Barber Type</a>
+        <a href="{% url 'salon:barber_type_create' salon_id=salon.pk %}" class="bg-[#4B49AC] hover:bg-[#7DA0FA] text-white font-bold py-2 px-4 rounded">Add New Barber Type</a>
     </div>
     {% if barber_types %}
         <div class="overflow-x-auto">

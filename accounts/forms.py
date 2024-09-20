@@ -15,6 +15,11 @@ class CustomUserCreationForm(UserCreationForm, StyleFormMixin):
     class Meta:
         model = CustomUser
         fields = ('email', 'first_name', 'last_name')
+        labels = {
+            'email': _('Email'),
+            'first_name': _('First Name'),
+            'last_name': _('Last Name'),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -24,6 +29,11 @@ class CustomUserChangeForm(UserChangeForm, StyleFormMixin):
     class Meta:
         model = CustomUser
         fields = ('email', 'first_name', 'last_name')
+        labels = {
+            'email': _('Email'),
+            'first_name': _('First Name'),
+            'last_name': _('Last Name'),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
